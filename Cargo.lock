@@ -173,7 +173,10 @@ dependencies = [
 name = "kobold_hello_world_example"
 version = "0.1.0"
 dependencies = [
+ "gloo-storage",
  "kobold",
+ "log",
+ "wasm-logger",
 ]
 
 [[package]]
