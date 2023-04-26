@@ -3,14 +3,17 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 use kobold::prelude::*;
-use kobold::branching::{Branch2, Branch3};
+use kobold::branching::{Branch2, Branch3, Empty, Play};
 use kobold::reexport::web_sys::HtmlTextAreaElement;
 use kobold_qr::KoboldQR;
 // use bevy_reflect::{FromReflect, Reflect, DynamicStruct, Struct};
 use gloo_console::{console_dbg};
 use gloo_utils::format::JsValueSerdeExt;
+use gloo_file::{Blob, File as GlooFile};
+use chrono::prelude::*;
 use log::{info, debug, error, warn};
 use serde::{Serialize, Deserialize};
+use serde_json::{to_string};
 use web_sys::{HtmlInputElement as InputElement, HtmlElement};
 use wasm_bindgen::JsValue;
 use wasm_bindgen_futures::spawn_local;
@@ -79,6 +82,16 @@ fn Editor() -> impl View {
             }
         };
 
+        // let file_blob = GlooFile::new_with_options(
+        //     "details.csv",
+        //     "live your best life",
+        //     Some("text/plain"),
+        //     Some(Utc::now().into())
+        // );
+        // let file = "abc".to_string();
+        // let file_blob = Blob::from(&file);
+        // let file_blob;// = "abc".to_string();
+        let file_blob: String = serde_json::to_string(&state.details.table).unwrap();
         let onsave_details = {
             let signal = state.signal();
 
@@ -89,13 +102,18 @@ fn Editor() -> impl View {
                 spawn_local(async move {
                     debug!("onsave_details: {:?}", &state.details);
                     match csv::write_file(&state.details).await {
-                        Ok(_) => {
-                            debug!("successfully wrote to file {:?}", state.details.filename);
+                        Ok(b) => {
+                            // file_blob = Blob::from(b);
+                            "abc".to_string();
+                            //file_blob = b;
                         },
                         Err(err) => {
                             panic!("failed to write to file {:?}", state.details.filename);
                         },
-                    }
+                    };
+                    debug!("successfully wrote to file {:?}", state.details.filename);
+                    // debug!("file blob {:?}", file_blob);
+                    // signal.update(|state| state.details.fileblob = file_blob);
                 })
             }
         };
@@ -134,12 +152,24 @@ fn Editor() -> impl View {
                         <h1>"Invoice"</h1>
                     </header>
                     <section .main>
+                        <div>
+                        {
+                            if false == true {
+                                Branch2::A(Play)
+                            } else {
+                                Branch2::B(Play)
+                            }
+                        }
+                        </div>
                         <div #input-file-select>
                             <h1>{ ref state.details.filename }</h1>
                             <input type="file" accept="text/csv" onchange={onload_details} />
                         </div>
                         <div>
                             <button #button-file-save type="button" onclick={onsave_details}>"Save to file"</button>
+                        </div>
+                        <div>
+                            <a href={file_blob} download={ref state.details.filename}>"Download"</a>
                         </div>
                         // <EntryView {state} />
                         <table

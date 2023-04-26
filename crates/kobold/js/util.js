@@ -4,6 +4,7 @@ export function __kobold_append(n,c) { n.appendChild(c); }
 export function __kobold_before(n,i) { n.before(i); }
 export function __kobold_unmount(n) { n.remove(); }
 export function __kobold_replace(o,n) { o.replaceWith(n); }
+export function __kobold_play(v) { return document.createTextNode(`${v}`); }
 export function __kobold_empty_node() { return document.createTextNode(""); }
 export function __kobold_fragment()
 {
@@ -44,3 +45,8 @@ export function __kobold_add_class(n,v) { n.classList.add(v); }
 export function __kobold_remove_class(n,v) { n.classList.remove(v); }
 export function __kobold_replace_class(n,o,v) { n.classList.replace(o,v); }
 export function __kobold_toggle_class(n,c,v) { n.classList.toggle(c,v); }
+
+// export function __kobold_play(v) {
+//     console.log('kobold: ', v);
+// 	return document.createTextNode(`${v}`);
+// }

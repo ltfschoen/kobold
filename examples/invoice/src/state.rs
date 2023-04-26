@@ -3,6 +3,7 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 use std::str::FromStr;
+use gloo_file::{File as GlooFile};
 use gloo_storage::{LocalStorage, Storage};
 use gloo_utils::format::JsValueSerdeExt;
 use wasm_bindgen::{JsValue, UnwrapThrowExt};
