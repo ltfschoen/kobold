@@ -29,25 +29,38 @@ fn Editor() -> impl View {
     stateful(State::default, |state| {
         debug!("Editor()");
 
-        let onload_details = {
+        let onload = {
             let signal = state.signal();
 
             move |e: Event<InputElement>| {
+                let id = e.target().id();
+                debug!("id {:?}", id);
+
                 let file = match e.target().files().and_then(|list| list.get(0)) {
                     Some(file) => file,
                     None => return,
                 };
 
-                signal.update(|state| state.details.filename = file.name());
+                signal.update(|state| {
+                    if id == "file-input-upload-main".to_string() {
+                        state.main.filename = file.name();
+                    } else if id == "file-input-upload-details".to_string() {
+                        state.details.filename = file.name();
+                    }
+                });
 
                 let signal = signal.clone();
 
                 spawn_local(async move {
                     if let Ok(table) = csv::read_file(file).await {
-                        debug!("details.table{:#?}", table);
+                        debug!("table {:#?}", table);
                         // https://docs.rs/kobold/latest/kobold/stateful/struct.Signal.html#method.update
                         signal.update(move |state| {
-                            state.details.table = table;
+                            if id == "file-input-upload-main".to_string() {
+                                state.main.table = table;
+                            } else if id == "file-input-upload-details".to_string() {
+                                state.details.table = table;
+                            }
                             state.store(); // update local storage
                         });
                     }
@@ -57,6 +70,9 @@ fn Editor() -> impl View {
 
         let onsave_details = {
             move |e: MouseEvent<HtmlElement>| {
+                let id = e.target().id();
+                debug!("id {:?}", id); // button-file-save-details
+
                 let signal = state.signal();
                 // update local storage and state so that &state.details isn't
                 // `Content { filename: "\0\0\0\0\0\0\0", table: Table { source: TextSource { source: "\0" }, columns: [Insitu(0..0)], rows: [] } }`
@@ -86,33 +102,6 @@ fn Editor() -> impl View {
             }
         };
 
-        let onload_main = {
-            let signal = state.signal();
-
-            move |e: Event<InputElement>| {
-                let file = match e.target().files().and_then(|list| list.get(0)) {
-                    Some(file) => file,
-                    None => return,
-                };
-
-                signal.update(|state| state.main.filename = file.name());
-
-                let signal = signal.clone();
-
-                spawn_local(async move {
-                    if let Ok(table) = csv::read_file(file).await {
-                        // debug!("main.table{:#?}", table);
-
-                        // NOTE - this section is required
-                        signal.update(move |state| {
-                            state.main.table = table;
-                            state.store(); // update local storage
-                        });
-                    }
-                })
-            }
-        };
-
         view! {
             <div .invoice-wrapper>
                 <section .invoiceapp>
@@ -121,12 +110,15 @@ fn Editor() -> impl View {
                     </header>
                     <section .main>
                         <div class="container">
-                            <input type="file" id="file-input" accept="text/csv" onchange={onload_details} />
-                            <input type="button" onclick="document.getElementById('file-input').click()" value="Upload CSV file" />
-                            <label for="file-input" class="label">{ ref state.details.filename }</label>
+                            <input type="file" id="file-input-upload-details" accept="text/csv" onchange={onload} />
+                            <input type="button"
+                                onclick="document.getElementById('file-input-upload-details').click()"
+                                value="Upload CSV file"
+                            />
+                            <label for="file-input-upload-details" class="label">{ ref state.details.filename }</label>
                             // generates CSV file download object url and triggers the script __kobold_click_element.js that
                             // automatically clicks the #link-file-download hyperlink when the object url has been stored in state
-                            <button #button-file-save type="button" onclick={onsave_details}>"Save to CSV file"</button><br />
+                            <button #button-file-save-details .button-file-save type="button" onclick={onsave_details}>"Save to CSV file"</button><br />
                         </div>
                         <div>
                         {
@@ -179,7 +171,7 @@ fn Editor() -> impl View {
                         </table>
                         <div #input-file-select>
                             <h1>{ ref state.main.filename }</h1>
-                            <input type="file" accept="text/csv" onchange={onload_main} />
+                            <input type="file" id="file-input-upload-main" accept="text/csv" onchange={onload} />
                         </div>
                         <table
                             onkeydown={

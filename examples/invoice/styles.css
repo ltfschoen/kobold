@@ -90,7 +90,7 @@ input[type=button] {
     padding: .5em 2em;
 }
 
-#file-input {
+#file-input-upload-details {
     display: none;
 }
 
@@ -100,7 +100,7 @@ input[type=button] {
     margin-left: 10px;
 }
   
-#button-file-save {
+.button-file-save {
     display: inline-block;
     background-color: #11cc11;
     border: 2px solid #11aa11;
