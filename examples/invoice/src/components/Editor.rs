@@ -9,11 +9,11 @@ use crate::components::{
 };
 use crate::csv;
 use crate::js;
-use crate::state::{Content, Editing, State, TableVariants};
+use crate::state::{Content, Editing, State, TableVariant};
 
 // running `get(state)` returns either `state.main` or `state.details`
 async fn onload_common(
-    table_variant: TableVariants,
+    table_variant: TableVariant,
     get: impl Fn(&mut State) -> &mut Content,
     state: Signal<State>,
     event: Event<InputElement>,
@@ -28,7 +28,8 @@ async fn onload_common(
     // TODO - should only update filename if the upload in the next step was successful
     state.update(|state| get(state).filename = file.name());
 
-    if let Ok(table) = csv::read_file(file).await {
+    if let Ok(mut table) = csv::read_file(file).await {
+        table.variant = table_variant;
         debug!("table {:#?}", table);
         // https://docs.rs/kobold/latest/kobold/stateful/struct.Signal.html#method.update
         state.update(move |state| {
@@ -38,8 +39,10 @@ async fn onload_common(
     }
 }
 
+// we don't need to pass `TableVariant` as a parameter since anything we've uploaded to be saved
+// should already have a variant associated with it, otherwise it'll be processed as `TableVariant::Unknown`
 async fn onsave_common(
-    table_variant: TableVariants,
+    // table_variant: TableVariant,
     get: impl Fn(&mut State) -> &mut Content,
     state: Signal<State>,
     event: MouseEvent<HtmlElement>,
@@ -53,38 +56,51 @@ async fn onsave_common(
         //   { source: "\0" }, columns: [Insitu(0..0)], rows: [] } }`
         state.store();
 
-        match table_variant {
-            TableVariants::Main => {
-                // only setup for details
-                match csv::generate_csv_data_for_download(TableVariants::Main, &get(state)) {
-                    Ok(csv_data) => {
-                        debug!("csv_data {:?}", csv_data);
-                        // cast String into a byte slice
-                        let csv_data_byte_slice: &[u8] = csv_data.as_bytes();
-                        js::browser_js::run_save_file(&get(state).filename, csv_data_byte_slice);
-                    }
-                    Err(err) => {
-                        panic!("failed to generate csv data for download: {:?}", err);
-                    }
-                };
-                debug!("successfully generated csv data for download");
+        match csv::generate_csv_data_for_download(&get(state)) {
+            Ok(csv_data) => {
+                debug!("csv_data {:?}", csv_data);
+                // cast String into a byte slice
+                let csv_data_byte_slice: &[u8] = csv_data.as_bytes();
+                js::browser_js::run_save_file(&get(state).filename, csv_data_byte_slice);
             }
-            TableVariants::Details => {
-                match csv::generate_csv_data_for_download(TableVariants::Details, &get(state)) {
-                    Ok(csv_data) => {
-                        debug!("csv_data {:?}", csv_data);
-                        // cast String into a byte slice
-                        let csv_data_byte_slice: &[u8] = csv_data.as_bytes();
-                        js::browser_js::run_save_file(&get(state).filename, csv_data_byte_slice);
-                    }
-                    Err(err) => {
-                        panic!("failed to generate csv data for download: {:?}", err);
-                    }
-                };
-                debug!("successfully generated csv data for download");
+            Err(err) => {
+                panic!("failed to generate csv data for download: {:?}", err);
             }
-            _ => panic!("unknown variant name to save csv data"),
         };
+        debug!("successfully generated csv data for download");
+
+        // match table_variant {
+        //     TableVariant::Main => {
+        //         // only setup for details
+        //         match csv::generate_csv_data_for_download(TableVariant::Main, &get(state)) {
+        //             Ok(csv_data) => {
+        //                 debug!("csv_data {:?}", csv_data);
+        //                 // cast String into a byte slice
+        //                 let csv_data_byte_slice: &[u8] = csv_data.as_bytes();
+        //                 js::browser_js::run_save_file(&get(state).filename, csv_data_byte_slice);
+        //             }
+        //             Err(err) => {
+        //                 panic!("failed to generate csv data for download: {:?}", err);
+        //             }
+        //         };
+        //         debug!("successfully generated csv data for download");
+        //     }
+        //     TableVariant::Details => {
+        //         match csv::generate_csv_data_for_download(TableVariant::Details, &get(state)) {
+        //             Ok(csv_data) => {
+        //                 debug!("csv_data {:?}", csv_data);
+        //                 // cast String into a byte slice
+        //                 let csv_data_byte_slice: &[u8] = csv_data.as_bytes();
+        //                 js::browser_js::run_save_file(&get(state).filename, csv_data_byte_slice);
+        //             }
+        //             Err(err) => {
+        //                 panic!("failed to generate csv data for download: {:?}", err);
+        //             }
+        //         };
+        //         debug!("successfully generated csv data for download");
+        //     }
+        //     _ => panic!("unknown variant name to save csv data"),
+        // };
     });
 }
 
@@ -94,19 +110,19 @@ pub fn Editor() -> impl View {
         debug!("Editor()");
 
         let onload_details = state.bind_async(|state, event: Event<InputElement>| async move {
-            onload_common(TableVariants::Details, |state| &mut state.details, state, event).await;
+            onload_common(TableVariant::Details, |state| &mut state.details, state, event).await;
         });
 
         let onload_main = state.bind_async(|state, event: Event<InputElement>| async move {
-            onload_common(TableVariants::Main, |state| &mut state.main, state, event).await;
+            onload_common(TableVariant::Main, |state| &mut state.main, state, event).await;
         });
 
         let onsave_details = state.bind_async(|state, event: MouseEvent<HtmlElement>| async move {
-            onsave_common(TableVariants::Details, |state| &mut state.details, state, event).await;
+            onsave_common(|state| &mut state.details, state, event).await;
         });
 
         let onsave_main = state.bind_async(|state, event: MouseEvent<HtmlElement>| async move {
-            onsave_common(TableVariants::Main, |state| &mut state.main, state, event).await;
+            onsave_common(|state| &mut state.main, state, event).await;
         });
 
         view! {
