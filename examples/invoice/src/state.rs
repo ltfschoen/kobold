@@ -7,6 +7,7 @@ use log::{debug, error, info, warn};
 use serde::{Deserialize, Serialize};
 use std::convert::TryInto;
 use std::ops::{Deref, DerefMut, Range};
+use std::str::FromStr;
 use wasm_bindgen::UnwrapThrowExt;
 
 const KEY_MAIN: &str = "kobold.invoice.main";
@@ -17,6 +18,19 @@ pub enum TableVariant {
     Main,
     Details,
     Unknown,
+}
+
+// https://www.reddit.com/r/rust/comments/2vqama/parse_string_as_enum_value/
+impl FromStr for TableVariant {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<TableVariant, ()> {
+        match s {
+            "main" => Ok(TableVariant::Main),
+            "details" => Ok(TableVariant::Details),
+            _ => Ok(TableVariant::Unknown),
+        }
+    }
 }
 
 #[derive(Deserialize, Debug)]

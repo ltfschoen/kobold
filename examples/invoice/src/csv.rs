@@ -12,18 +12,24 @@ use web_sys::{File, Url};
 use crate::helpers::csv_helpers;
 use crate::state::{Content, Table, TableVariant, Text, TextSource};
 
+const TABLE_VARIANT_PREFIX: &str = "#";
+
 #[derive(Logos, Debug, PartialEq)]
 enum Token {
     #[error]
     Err,
     // If we use `#` as the character before the TableVariant is mentioned
-    // then we cannot use that character elsewhere in the Table `source` value
+    // then we cannot use that character elsewhere in the Table `source` value.
+    // It must be manually changed here if the value of TABLE_VARIANT_PREFIX changes.
     #[regex(r#"[#].+"#, priority = 7)]
     Hash,
     #[token(",")]
     Comma,
     #[regex(r"[\n\r]+")]
     Newline,
+    // Here we include the `#` as a character that is not recognised as a value
+    // since we're using it as the TableVariant.
+    // It must be manually changed here if the value of TABLE_VARIANT_PREFIX changes.
     #[regex(r#"[^"\n\r,#]+"#)]
     Value,
     #[regex(r#""[^"]+""#, priority = 6)]
@@ -62,10 +68,13 @@ fn parse_table_variant(lex: &mut Lexer<Token>, columns: usize) -> Result<TableVa
                 // so manually have to get value between @ and next comma
 
                 // https://stackoverflow.com/a/37784410/3208553
-                let start_bytes = slice.find("#").unwrap_or(0);
+                let start_bytes = slice.find(TABLE_VARIANT_PREFIX).unwrap_or(0);
                 let end_bytes = slice.find(",").unwrap_or(slice.len());
                 let result = &slice[(start_bytes + 1)..end_bytes];
                 debug!("parse_row result {:?}", result);
+                // TODO - try to replace with use of `impl FromStr for TableVariant {` in state.rs
+                // by calling `result.parse::<TableVariant>()`.
+                // See https://www.reddit.com/r/rust/comments/2vqama/parse_string_as_enum_value/
                 table_variant = match result {
                     "main" => TableVariant::Main,
                     "details" => TableVariant::Details,
@@ -276,7 +285,10 @@ pub fn generate_csv_data_for_download(content: &Content) -> Result<String, Error
             validate_same_columns_length_all_rows(&new_csv, &new_csv_lens)?;
 
             let mut arr = vec![];
-            let prefix = "#".to_string();
+            let prefix = TABLE_VARIANT_PREFIX.to_string();
+            // TODO - try to replace with a mapping from `TableVariant::Main` to `main`
+            // by creating something like `impl FromTableVariant for String {` in state.rs.
+            // repeat for `"details".string();`
             let table_variant_str = "main".to_string();
             let prefix_table_variant: String = format!("{prefix}{table_variant_str},");
 
@@ -341,7 +353,7 @@ pub fn generate_csv_data_for_download(content: &Content) -> Result<String, Error
             validate_same_columns_length_all_rows(&new_csv, &new_csv_lens)?;
 
             let mut arr = vec![];
-            let prefix = "#".to_string();
+            let prefix = TABLE_VARIANT_PREFIX.to_string();
             let table_variant_str = "details".to_string();
             let prefix_table_variant: String = format!("{prefix}{table_variant_str},");
 
