@@ -8,7 +8,14 @@ use web_sys::{EventTarget, HtmlElement, HtmlInputElement as InputElement};
 
 use kobold::prelude::*;
 
-mod js;
+extern crate js;
+
+use js::modules::{browser_js};
+
+// use js::tests::{wasm};
+
+// pub mod tests;
+// use tests::wasm;
 
 struct State {
     hash: String,
@@ -24,7 +31,7 @@ impl State {
 
 async fn onclick_pjs_process(state: Signal<State>, event: MouseEvent<HtmlElement>) {
     let res: Result<wasm_bindgen::JsValue, wasm_bindgen::JsValue> =
-        js::browser_js::run_npm_lib().await;
+        browser_js::run_npm_lib().await;
 
     state.update(move |state| match res {
         Ok(jsv) => {

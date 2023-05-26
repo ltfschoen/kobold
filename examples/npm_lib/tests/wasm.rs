@@ -3,16 +3,17 @@ use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::{future_to_promise, JsFuture};
 use wasm_bindgen_test::*;
 
-use super::*;
+extern crate js;
 
-use crate::js::browser_js::run_npm_lib;
+use js::modules::{browser_js};
+// use crate::modules::{browser_js};
 
-async fn onclick_pjs_process_async() -> Result<wasm_bindgen::JsValue, wasm_bindgen::JsValue> {
-    run_npm_lib().await
+pub async fn onclick_pjs_process_async() -> Result<wasm_bindgen::JsValue, wasm_bindgen::JsValue> {
+    browser_js::run_npm_lib().await
 }
 
 #[wasm_bindgen_test]
-async fn test_onclick_pjs_process() {
+pub async fn test_onclick_pjs_process() {
     let expected = JsValue::from_str("0x00");
 
     let promise: Promise = future_to_promise(async {

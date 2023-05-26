@@ -9,6 +9,6 @@ extern "C" {
 #[macro_export]
 macro_rules! console_log {
     ($($t:tt)*) => {
-        ($crate::js::interfaces::browser_js_spec_macros::log(&format_args!($($t)*).to_string()))
+        ($crate::modules::interfaces::browser_js_spec_macros::log(&format_args!($($t)*).to_string()))
     }
 }

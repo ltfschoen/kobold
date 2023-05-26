@@ -4,10 +4,10 @@
 
 use wasm_bindgen::prelude::*;
 
-use crate::js::interfaces::browser_js_spec_npm_lib as connect;
+use crate::modules::interfaces::browser_js_spec_npm_lib as connect;
 
 #[macro_use]
-use crate::js::interfaces::browser_js_spec_macros;
+use crate::modules::interfaces::browser_js_spec_macros;
 
 #[wasm_bindgen]
 pub async fn run_npm_lib() -> Result<JsValue, JsValue> {
