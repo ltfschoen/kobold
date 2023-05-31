@@ -4,6 +4,7 @@
 
 use log::debug;
 use wasm_bindgen::JsValue;
+use gloo_utils::format::JsValueSerdeExt;
 use web_sys::{EventTarget, HtmlElement, HtmlInputElement as InputElement};
 
 use kobold::prelude::*;
@@ -24,13 +25,19 @@ impl State {
 
 async fn onclick_pjs_process(state: Signal<State>, event: MouseEvent<HtmlElement>) {
     let res = js::browser_js::run_npm_lib().await;
+    // debug!("res {:?}", res);
+    // let hash_u8a = &res.unwrap();
+    // debug!("hash_u8a {:?}", hash_u8a);
+    // let hash_u8a_serded = hash_u8a.into_serde::<String>().unwrap();
+    // let hash_hex =  std::str::from_utf8(hash_u8a_serded.as_ref()).unwrap().to_string();
+    // debug!("hash_hex {:?}", hash_hex);
         
-    let hash = match res.ok().and_then(|value| value.as_string()) {
-        Some(hash) => hash,
-        None => panic!("error fetching from API"),
-    };
+    // let hash = match res.ok().and_then(|value| value.as_string()) {
+    //     Some(hash) => hash,
+    //     None => panic!("error fetching from API"),
+    // };
 
-    state.update(move |state| state.hash = hash);
+    // state.update(move |state| state.hash = hash);
 }
 
 #[component]

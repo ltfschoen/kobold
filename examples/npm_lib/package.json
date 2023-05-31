@@ -3,7 +3,8 @@
     "esbuild": "node esbuild.js"
   },
   "dependencies": {
-    "@polkadot/api": "^10.6.1",
+    "@polkadot/api": "^10.7.3",
+    "@polkadot/util": "^12.2.1",
     "esbuild": "^0.17.19"
   },
   "type": "module"

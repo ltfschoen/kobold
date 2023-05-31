@@ -3,10 +3,11 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 const { ApiPromise, WsProvider } = require('@polkadot/api');
+const { u8aToU8a } = require('@polkadot/util');
 
 export async function koboldNpmLib() {
     const wsProvider = new WsProvider('wss://rpc.polkadot.io');
     const api = await ApiPromise.create({ provider: wsProvider });
-
-    return api.genesisHash.toHex();
+    const hexPrefixed = api.genesisHash.toHex();
+    return u8aToU8a(hexPrefixed); // Uint8Array
 }
