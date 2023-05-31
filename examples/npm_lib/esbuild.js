@@ -10,7 +10,7 @@ import esbuild from 'esbuild';
 esbuild.build({
     entryPoints: ['koboldNpmLib.js'],
     bundle: true,
-    outfile: 'output/koboldNpmLib.mjs',
+    outfile: 'js/output/koboldNpmLib.mjs',
     format: 'esm',
     minify: false,
 }).catch(() => process.exit(1));

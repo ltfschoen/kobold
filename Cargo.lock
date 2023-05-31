@@ -143,6 +143,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "453ad9f582a441959e5f0d088b02ce04cfe8d51a8eaf077f12ac6d3e94164ca6"
 
 [[package]]
+name = "js"
+version = "0.1.0"
+dependencies = [
+ "js-sys",
+ "kobold",
+ "log",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "wasm-bindgen-test",
+]
+
+[[package]]
 name = "js-sys"
 version = "0.3.62"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -220,6 +232,7 @@ dependencies = [
 name = "kobold_npm_lib_example"
 version = "0.1.0"
 dependencies = [
+ "js",
  "js-sys",
  "kobold",
  "log",
